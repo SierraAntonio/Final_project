@@ -13,8 +13,7 @@ Autonomous robot for UN SDG 6.6, built with:
 | Software | Hadware | Language |
 |----------|-------------|---------|
 | ![Image](https://github.com/user-attachments/assets/ba29d53e-6dfa-47d1-b6b1-9304f1ada48d) | ![image](https://github.com/user-attachments/assets/dede4016-bc5f-4181-8ec5-300de8afe694)
- | ![Image](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040) |
----------------------------------------------------------------------
+ | ![Image](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040) 
 1. Vision System
 USB Camera
 
