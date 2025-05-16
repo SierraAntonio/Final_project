@@ -12,7 +12,7 @@ Autonomous robot for UN SDG 6.6, built with:
 ## Gallery
 | Overview | Electronics | Testing |
 |----------|-------------|---------|
-| <img src="https://github.com/.../image1.webp" width="200"> | <img src="https://github.com/.../image2.webp" width="200"> | <img src="https://github.com/.../image3.webp" width="200"> |
+| <img src="https://github.com/.../image1.webp" width="200"> | <img src="https://github.com/.../image2.webp" width="200"> | ![Image](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040) |
 ---------------------------------------------------------------------
 1. Vision System
 USB Camera
