@@ -5,9 +5,9 @@ Proyecto final de la materia de diseño de sistemas roboticas UDLAP LRT4102-1
 ----------------------------
 I designed AquaCleaner as an autonomous floating robot to tackle water pollution and support UN Sustainable Development Goal 6.6 (protecting and restoring freshwater ecosystems). My goal was to create an affordable, scalable solution to remove trash from lakes and rivers while monitoring water quality—using ROS2 for intelligent autonomy and Arduino for robust hardware control.
 Developed by student from Universidad de las Américas Puebla (UDLAP)
-![Robot Overview](https://github.com/user-attachments/assets/20d7e44a-f680-4475-9b4c-3b9e72525e9b){:width="400px"}
-![Electronics](https://github.com/user-attachments/assets/290dbe6c-30f9-46b8-9c4c-bcf27c9b200d){:width="400px"}
-![Testing](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040){:width="400px"}
+![Robot Overview](https://github.com/user-attachments/assets/20d7e44a-f680-4475-9b4c-3b9e72525e9b){:width="40px"}
+![Electronics](https://github.com/user-attachments/assets/290dbe6c-30f9-46b8-9c4c-bcf27c9b200d){:width="40px"}
+![Testing](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040){:width="40px"}
 ---------------------------------------------------------------------
 1. Vision System
 USB Camera
