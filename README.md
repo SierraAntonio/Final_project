@@ -181,7 +181,7 @@ Make sure your ROS 2 project is inside a proper ROS workspace, for example:
 ````
 Each package should include as the following image: 
 ![Image](https://github.com/user-attachments/assets/c8ad046e-e900-4094-b225-c8afa93b1338)
-If you hace a structure like this, the proyect will work correctly
+If you have a structure like this, the proyect will work correctly
 # 💻 Code Used in the Project
 
 This section includes the Arduino and Python (ROS2) code used in the water-cleaning robot system.
