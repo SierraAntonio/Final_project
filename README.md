@@ -91,3 +91,23 @@ Lighting conditions affected detection reliability
 | **Software**      | ROS2 Humble             | Ubuntu 22.04                     | Autonomy stack (SLAM-free, color-based navigation).                     | Nodes: `vision_node`, `control_node`, `main_node`. |
 |                   | OpenCV                  | 4.5+ (Python)                    | Real-time color detection (`cv2.inRange`).                              | Thresholds calibrated for red/green. |
 |                   | PySerial                | 3.5+                             | Serial communication with Arduino.                                      | Commands: `b'A'`, `b'S'`, `b'B'`.  |
+
+⚡ Quick Installation
+1. Install Ubuntu 22.04 & ROS2 Humble
+   # Download Ubuntu 22.04:  
+wget https://releases.ubuntu.com/jammy/ubuntu-22.04.4-desktop-amd64.iso
+
+# Install ROS2:  
+sudo apt update && sudo apt install -y curl gnupg  
+curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | sudo gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg  
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null  
+sudo apt update && sudo apt install -y ros-humble-desktop python3-colcon-common-extensions
+2. Install OpenCV & Dependencies
+bash
+sudo apt install -y python3-opencv libopencv-dev  
+pip install pyserial numpy
+3. Set Up Arduino Communication
+bash
+# Grant USB permissions:  
+sudo usermod -a -G dialout $USER  
+sudo chmod 666 /dev/ttyACM0
