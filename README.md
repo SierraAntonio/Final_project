@@ -182,176 +182,68 @@ Make sure your ROS 2 project is inside a proper ROS workspace, for example:
 Each package should include as the following image: 
 ![Image](https://github.com/user-attachments/assets/c8ad046e-e900-4094-b225-c8afa93b1338)
 If you have a structure like this, the proyect will work correctly
-# 💻 Code Used in the Project
-
-This section includes the Arduino and Python (ROS2) code used in the water-cleaning robot system.
+# 💻 You can find the Codes Used in the Project
 
 ---
 
-## 🔧 Arduino Code — Bidirectional Motor Control with L298N
+## 🧠 System Architecture: Python and Arduino Serial Communication
 
-```bash
-// Define motor pins
-int motor1Pin1 = 3;  // IN1 on L298N
-int motor1Pin2 = 4;  // IN2 on L298N
-int motor2Pin1 = 5;  // IN3 on L298N
-int motor2Pin2 = 6;  // IN4 on L298N
-int enableMotor1 = 9;  // ENA
-int enableMotor2 = 10; // ENB
+The system is composed of two main parts: the **Python script running on a Raspberry Pi (or computer with ROS 2)**, and the **Arduino microcontroller** connected via USB.
 
-void setup() {
-  pinMode(motor1Pin1, OUTPUT);
-  pinMode(motor1Pin2, OUTPUT);
-  pinMode(motor2Pin1, OUTPUT);
-  pinMode(motor2Pin2, OUTPUT);
-  pinMode(enableMotor1, OUTPUT);
-  pinMode(enableMotor2, OUTPUT);
+### 🐍 Python (OpenCV + PySerial)
 
-  digitalWrite(enableMotor1, HIGH);
-  digitalWrite(enableMotor2, HIGH);
-}
+The Python script is responsible for:
 
-void loop() {
-  // Forward
-  digitalWrite(motor1Pin1, HIGH);
-  digitalWrite(motor1Pin2, LOW);
-  digitalWrite(motor2Pin1, HIGH);
-  digitalWrite(motor2Pin2, LOW);
-  delay(2000);
+- **Capturing video frames** from a USB camera.
+- **Detecting red and green colors** using HSV thresholding.
+- **Sending commands to Arduino** via the serial port (`/dev/ttyACM0`) based on detection results.
+- **State management**, to decide when to start or stop the motors.
 
-  // Backward
-  digitalWrite(motor1Pin1, LOW);
-  digitalWrite(motor1Pin2, HIGH);
-  digitalWrite(motor2Pin1, LOW);
-  digitalWrite(motor2Pin2, HIGH);
-  delay(2000);
+#### 🔍 Color Detection Logic
 
-  // Stop
-  digitalWrite(motor1Pin1, LOW);
-  digitalWrite(motor1Pin2, LOW);
-  digitalWrite(motor2Pin1, LOW);
-  digitalWrite(motor2Pin2, LOW);
-  delay(2000);
-}
-````
-🐍 ROS2 Python Code — Color Detection and Serial Control
-```bash
-import cv2
-import numpy as np
-import serial
-import time
-import os
+- Red and green color ranges are defined in HSV space.
+- If more than a certain number of pixels match those ranges (e.g. 5000+), it is considered "detected".
+- The logic reacts immediately to detected objects to engage the collection process.
 
-def detectar_colores(frame):
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+#### 🧬 State Machine Overview
 
-    # Red color range
-    lower_red1 = np.array([0, 100, 100])
-    upper_red1 = np.array([10, 255, 255])
-    lower_red2 = np.array([160, 100, 100])
-    upper_red2 = np.array([179, 255, 255])
+| State               | Condition                  | Action                                 |
+|--------------------|----------------------------|----------------------------------------|
+| `INITIAL`          | No color                   | Send `'A'` → Motors Off                |
+|                    | Color detected             | Send `'S'` → Stop → wait → `'B'` On    |
+| `AMBOS_ENCENDIDOS` | Color disappears           | Start timer → Switch to `WAITING`     |
+| `WAITING`          | After 4 seconds            | Return to `INITIAL`                   |
 
-    # Green color range
-    lower_green = np.array([40, 70, 70])
-    upper_green = np.array([80, 255, 255])
-
-    mask_red = cv2.inRange(hsv, lower_red1, upper_red1) + cv2.inRange(hsv, lower_red2, upper_red2)
-    mask_green = cv2.inRange(hsv, lower_green, upper_green)
-
-    red_detected = cv2.countNonZero(mask_red) > 5000
-    green_detected = cv2.countNonZero(mask_green) > 5000
-
-    return red_detected, green_detected
-
-def conectar_arduino():
-    try:
-        arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-        time.sleep(2)
-        print("Arduino connected on /dev/ttyACM0")
-        return arduino
-    except Exception as e:
-        print(f"Failed to connect to Arduino: {e}")
-        return None
-
-def encontrar_camara():
-    for i in range(0, 30):
-        if not os.path.exists(f"/dev/video{i}"):
-            continue
-        cap = cv2.VideoCapture(i)
-        if cap.isOpened():
-            ret, _ = cap.read()
-            if ret:
-                print(f"Camera found at /dev/video{i}")
-                return cap
-        cap.release()
-    print("No functional camera found.")
-    return None
-
-def main():
-    cap = encontrar_camara()
-    if cap is None:
-        return
-
-    arduino = conectar_arduino()
-    if arduino is None:
-        cap.release()
-        return
-
-    estado = 'INICIAL'
-    color_detectado = False
-    t_apagado = 0
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            print("Failed to read frame.")
-            break
-
-        rojo, verde = detectar_colores(frame)
-        color_ahora = rojo or verde
-
-        if rojo and verde:
-            print("Both colors detected")
-        elif rojo:
-            print("Red detected")
-        elif verde:
-            print("Green detected")
-
-        if estado == 'INICIAL':
-            arduino.write(b'A\n')
-            if color_ahora:
-                print("Color detected — stopping motors")
-                arduino.write(b'S\n')
-                time.sleep(2)
-                arduino.write(b'B\n')
-                estado = 'AMBOS ENCENDIDOS'
-                color_detectado = True
-
-        elif estado == 'AMBOS ENCENDIDOS':
-            if not color_ahora and color_detectado:
-                print("Color lost — keeping motors on for 4s")
-                t_apagado = time.time()
-                color_detectado = False
-                estado = 'ESPERA_POST_COLOR'
-
-        elif estado == 'ESPERA_POST_COLOR':
-            arduino.write(b'B\n')
-            if time.time() - t_apagado >= 4:
-                print("Returning to initial state")
-                estado = 'INICIAL'
-
-        cv2.imshow("Camera", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    arduino.close()
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()
-```
 ---
+
+### 🔌 Arduino (L298N Motor Control)
+
+The Arduino sketch waits for **single-character commands** received via Serial (USB) from Python. The supported commands are:
+
+| Command | Meaning             | Arduino Action                         |
+|---------|---------------------|----------------------------------------|
+| `A`     | Initialization       | Stop all motors                        |
+| `S`     | Stop                | Immediately turn off motors            |
+| `B`     | Activate            | Start motors to move forward           |
+
+Arduino uses a **L298N H-Bridge** to control two DC motors. Each command from the Python script corresponds to a digital signal change on the motor driver pins.
+
+---
+
+### 🔄 How They Work Together
+
+1. The camera captures live video.
+2. The Python script detects if a red or green object is present.
+3. Depending on the result:
+   - It sends a command like `'S'` or `'B'` to the Arduino.
+4. Arduino receives the command and updates the motor control logic accordingly.
+5. Feedback is visualized on the camera window and terminal.
+
+> ✅ This architecture enables real-time reactive control, where **vision guides motion**.
+
+---
+
+
 
 ## ✅ Conclusion
 
