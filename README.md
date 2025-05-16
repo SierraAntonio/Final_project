@@ -91,23 +91,286 @@ Lighting conditions affected detection reliability
 | **Software**      | ROS2 Humble             | Ubuntu 22.04                     | Autonomy stack (SLAM-free, color-based navigation).                     | Nodes: `vision_node`, `control_node`, `main_node`. |
 |                   | OpenCV                  | 4.5+ (Python)                    | Real-time color detection (`cv2.inRange`).                              | Thresholds calibrated for red/green. |
 |                   | PySerial                | 3.5+                             | Serial communication with Arduino.                                      | Commands: `b'A'`, `b'S'`, `b'B'`.  |
+---
 
-⚡ Quick Installation
-1. Install Ubuntu 22.04 & ROS2 Humble
-   # Download Ubuntu 22.04:  
-wget https://releases.ubuntu.com/jammy/ubuntu-22.04.4-desktop-amd64.iso
+## 🧱 Structure Design
 
-# Install ROS2:  
-sudo apt update && sudo apt install -y curl gnupg  
-curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | sudo gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg  
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null  
-sudo apt update && sudo apt install -y ros-humble-desktop python3-colcon-common-extensions
-2. Install OpenCV & Dependencies
-bash
-sudo apt install -y python3-opencv libopencv-dev  
-pip install pyserial numpy
-3. Set Up Arduino Communication
-bash
-# Grant USB permissions:  
-sudo usermod -a -G dialout $USER  
+The physical structure of the robot was designed with two main priorities in mind: **buoyancy** and **environmental safety**. The selected materials—**PVC pipes**, **styrofoam sheets**, and **floating tubes**—were chosen for their lightweight properties and resistance to water absorption, ensuring the robot remains afloat during operation.
+
+### 🛠️ Materials Used
+
+- **PVC Pipes and Elbows:** Form the rigid frame of the robot. PVC is durable, lightweight, and waterproof.
+- **Styrofoam Panels (Expanded Polystyrene):** Provide buoyant force by displacing water and resisting saturation.
+- **Floating Tube (Foam Pool Noodle or Similar):** Enhances stability and helps keep the robot balanced even when collecting debris.
+
+These materials together ensure that the robot maintains positive buoyancy, meaning the **total weight of the system is less than the weight of the water displaced**. This principle, based on Archimedes' law, guarantees that the robot floats and remains stable, even under partial load.
+![Image](https://github.com/user-attachments/assets/c8843805-dd73-40cd-8192-74dbe48ce407)
+
+We also printed the blades:
+
+![Image](https://github.com/user-attachments/assets/bb540c26-d89f-4c2c-9225-c167b5cfe0e9)
+---
+
+### 📸 Structure Image
+
+#### 🔲 Front View
+![Image](https://github.com/user-attachments/assets/57bc1fd0-6536-457f-b4ce-df89768875f6)
+
+
+# ⚙️ Installation Guide
+
+This guide explains how to install Ubuntu, ROS 2 Humble, OpenCV, and configure Arduino communication for your autonomous water-cleaning robot system.
+
+---
+
+## 🐧 Ubuntu 22.04 Installation (Jammy Jellyfish)
+
+Download the official Ubuntu 22.04 ISO from the following link:  
+🔗 [Ubuntu 22.04 Jammy Downloads](https://releases.ubuntu.com/jammy/)
+
+> 💡 **Note:** For Raspberry Pi or ARM-based systems, use the ARM64 version.
+
+---
+
+## 🤖 Installing ROS 2 Humble Hawksbill on Ubuntu 22.04
+
+```bash
+# Update your system
+sudo apt update && sudo apt upgrade -y
+
+# Install required packages
+sudo apt install software-properties-common -y
+sudo add-apt-repository universe
+
+# Add ROS 2 GPG key
+sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+
+# Add ROS 2 repository
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list
+
+# Update and install ROS 2 Humble (desktop version)
+sudo apt update
+sudo apt install ros-humble-desktop -y
+
+# Source ROS 2 environment automatically
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+````
+📦 Installing OpenCV, PySerial, and NumPy
+```bash
+
+# Install OpenCV (Python3 version) and pip
+sudo apt install python3-opencv python3-pip -y
+
+# Install Python libraries for ROS-Arduino communication
+pip3 install pyserial numpy
+````
+🔌 Setting Up Serial Communication with Arduino
+```bash
+# Check the Arduino port (usually /dev/ttyACM0)
+ls /dev/ttyACM*
+
+# Grant serial port permissions
 sudo chmod 666 /dev/ttyACM0
+````
+📝 Important Notes for ROS 2 Workspace
+Make sure your ROS 2 project is inside a proper ROS workspace, for example:
+```bash
+~/ros2_ws/src/your_project/
+````
+Each package should include as the following image: 
+![Image](https://github.com/user-attachments/assets/c8ad046e-e900-4094-b225-c8afa93b1338)
+If you hace a structure like this, the proyect will work correctly
+# 💻 Code Used in the Project
+
+This section includes the Arduino and Python (ROS2) code used in the water-cleaning robot system.
+
+---
+
+## 🔧 Arduino Code — Bidirectional Motor Control with L298N
+
+```bash
+// Define motor pins
+int motor1Pin1 = 3;  // IN1 on L298N
+int motor1Pin2 = 4;  // IN2 on L298N
+int motor2Pin1 = 5;  // IN3 on L298N
+int motor2Pin2 = 6;  // IN4 on L298N
+int enableMotor1 = 9;  // ENA
+int enableMotor2 = 10; // ENB
+
+void setup() {
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+  pinMode(enableMotor1, OUTPUT);
+  pinMode(enableMotor2, OUTPUT);
+
+  digitalWrite(enableMotor1, HIGH);
+  digitalWrite(enableMotor2, HIGH);
+}
+
+void loop() {
+  // Forward
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+  delay(2000);
+
+  // Backward
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+  delay(2000);
+
+  // Stop
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
+  delay(2000);
+}
+````
+🐍 ROS2 Python Code — Color Detection and Serial Control
+```bash
+import cv2
+import numpy as np
+import serial
+import time
+import os
+
+def detectar_colores(frame):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Red color range
+    lower_red1 = np.array([0, 100, 100])
+    upper_red1 = np.array([10, 255, 255])
+    lower_red2 = np.array([160, 100, 100])
+    upper_red2 = np.array([179, 255, 255])
+
+    # Green color range
+    lower_green = np.array([40, 70, 70])
+    upper_green = np.array([80, 255, 255])
+
+    mask_red = cv2.inRange(hsv, lower_red1, upper_red1) + cv2.inRange(hsv, lower_red2, upper_red2)
+    mask_green = cv2.inRange(hsv, lower_green, upper_green)
+
+    red_detected = cv2.countNonZero(mask_red) > 5000
+    green_detected = cv2.countNonZero(mask_green) > 5000
+
+    return red_detected, green_detected
+
+def conectar_arduino():
+    try:
+        arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+        time.sleep(2)
+        print("Arduino connected on /dev/ttyACM0")
+        return arduino
+    except Exception as e:
+        print(f"Failed to connect to Arduino: {e}")
+        return None
+
+def encontrar_camara():
+    for i in range(0, 30):
+        if not os.path.exists(f"/dev/video{i}"):
+            continue
+        cap = cv2.VideoCapture(i)
+        if cap.isOpened():
+            ret, _ = cap.read()
+            if ret:
+                print(f"Camera found at /dev/video{i}")
+                return cap
+        cap.release()
+    print("No functional camera found.")
+    return None
+
+def main():
+    cap = encontrar_camara()
+    if cap is None:
+        return
+
+    arduino = conectar_arduino()
+    if arduino is None:
+        cap.release()
+        return
+
+    estado = 'INICIAL'
+    color_detectado = False
+    t_apagado = 0
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Failed to read frame.")
+            break
+
+        rojo, verde = detectar_colores(frame)
+        color_ahora = rojo or verde
+
+        if rojo and verde:
+            print("Both colors detected")
+        elif rojo:
+            print("Red detected")
+        elif verde:
+            print("Green detected")
+
+        if estado == 'INICIAL':
+            arduino.write(b'A\n')
+            if color_ahora:
+                print("Color detected — stopping motors")
+                arduino.write(b'S\n')
+                time.sleep(2)
+                arduino.write(b'B\n')
+                estado = 'AMBOS ENCENDIDOS'
+                color_detectado = True
+
+        elif estado == 'AMBOS ENCENDIDOS':
+            if not color_ahora and color_detectado:
+                print("Color lost — keeping motors on for 4s")
+                t_apagado = time.time()
+                color_detectado = False
+                estado = 'ESPERA_POST_COLOR'
+
+        elif estado == 'ESPERA_POST_COLOR':
+            arduino.write(b'B\n')
+            if time.time() - t_apagado >= 4:
+                print("Returning to initial state")
+                estado = 'INICIAL'
+
+        cv2.imshow("Camera", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    arduino.close()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
+```
+---
+
+## ✅ Conclusion
+
+The development of this autonomous aquatic robot successfully demonstrated the feasibility of using ROS 2 and OpenCV for real-time color-based object detection and motor control through Arduino communication. The robot achieved a high detection accuracy for red and green floating objects and responded correctly by activating its motors to collect them. The modular software architecture, based on ROS 2 nodes, enabled easy integration and testing of vision and control subsystems. This project contributes to sustainable solutions for water pollution and highlights the potential of low-cost robotics in environmental applications.
+
+---
+
+## 🚀 Future Improvements
+
+- **Structural Design:** Replace the current PVC and styrofoam structure with a more hydrodynamic and waterproof frame to improve stability and maneuverability in real aquatic environments.
+- **Advanced Detection:** Incorporate deep learning models or advanced computer vision techniques to improve object detection under varying lighting and environmental conditions.
+- **Contact-Based Collection:** Add a mechanical collection mechanism that physically interacts with the detected debris for better waste retention and efficiency.
+- **Battery & Power:** Integrate a solar charging system or higher-capacity power bank to allow longer autonomous operation time.
+
+---
+
+## 📬 Contact
+
+For questions, suggestions, or collaboration opportunities, please contact:
+
+**Antonio Martínez Sierra**  
+📧 antonio.martinezsa@udlap.mx
