@@ -4,10 +4,6 @@ Proyecto final de la materia de diseño de sistemas roboticas UDLAP LRT4102-1
 **WATER CLEANING ROBOT**
 ----------------------------
 I designed AquaCleaner as an autonomous floating robot to tackle water pollution and support UN Sustainable Development Goal 6.6 (protecting and restoring freshwater ecosystems). My goal was to create an affordable, scalable solution to remove trash from lakes and rivers while monitoring water quality—using ROS2 for intelligent autonomy and Arduino for robust hardware control.
-# WATER CLEANING ROBOT 🤖🌊
-
-<img src="https://github.com/.../robot.webp" width="400" alt="AquaCleaner Prototype">
-
 Autonomous robot for UN SDG 6.6, built with:
 - ROS2 Humble (Python)
 - Arduino Mega
