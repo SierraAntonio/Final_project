@@ -5,9 +5,9 @@ Proyecto final de la materia de diseño de sistemas roboticas UDLAP LRT4102-1
 ----------------------------
 I designed AquaCleaner as an autonomous floating robot to tackle water pollution and support UN Sustainable Development Goal 6.6 (protecting and restoring freshwater ecosystems). My goal was to create an affordable, scalable solution to remove trash from lakes and rivers while monitoring water quality—using ROS2 for intelligent autonomy and Arduino for robust hardware control.
 Developed by student from Universidad de las Américas Puebla (UDLAP)
-![Image](https://github.com/user-attachments/assets/20d7e44a-f680-4475-9b4c-3b9e72525e9b)
-![Image](https://github.com/user-attachments/assets/290dbe6c-30f9-46b8-9c4c-bcf27c9b200d)
-![Image](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040)
+![Robot Overview](https://github.com/user-attachments/assets/20d7e44a-f680-4475-9b4c-3b9e72525e9b){:width="400px"}
+![Electronics](https://github.com/user-attachments/assets/290dbe6c-30f9-46b8-9c4c-bcf27c9b200d){:width="400px"}
+![Testing](https://github.com/user-attachments/assets/058b3000-cdf5-4cec-b9f0-9aea06dea040){:width="400px"}
 ---------------------------------------------------------------------
 1. Vision System
 USB Camera
@@ -68,3 +68,21 @@ Limitations:
 Propeller thrust insufficient for strong currents.
 
 Lighting conditions affected detection reliability
+
+## 🛠️ Hardware & Software Components
+
+| Category          | Component               | Specification/Model              | Purpose                                                                 | Notes                              |
+|-------------------|-------------------------|----------------------------------|-------------------------------------------------------------------------|------------------------------------|
+| **Computing**     | Raspberry Pi 4          | Model B (4GB RAM)                | Runs ROS2 Humble (Ubuntu 22.04) for autonomy and vision processing.     | Borrowed from UDLAP lab.           |
+|                   | Arduino Mega 2560       | ATmega2560                       | Controls motors via H-bridge (L298N).                                   | Communicates with ROS2 via serial. |
+| **Sensors**       | USB Camera              | Generic (e.g., Raspberry Pi Cam) | Detects red/green objects using OpenCV (HSV color space).               | Thresholds: `lower_red1=[0,100,100]`, `upper_green=[80,255,255]`. |
+| **Actuators**     | DC Motors               | 12V, 2x                          | Propels the robot in water.                                             | Connected via L298N H-bridge.      |
+|                   | 3D-Printed Propellers   | Custom design                    | Converts motor rotation to thrust.                                      | Iterated for better efficiency.    |
+| **Power**         | Power Bank              | 10,000mAh+                       | Powers Raspberry Pi.                                                    | Purchased.                         |
+|                   | 9V Batteries            | 2x                               | Supplies Arduino and motors.                                            | 60 MXN each.                       |
+| **Structure**     | PVC Pipes               | 3m length                        | Lightweight frame for buoyancy.                                         | Cost: 300 MXN.                     |
+|                   | Styrofoam               | 2x2m sheet                       | Provides additional floatation.                                         | Cost: 120 MXN.                     |
+|                   | Float Tube              | 2m                               | Auxiliary buoyancy aid.                                                 | Cost: 50 MXN.                      |
+| **Software**      | ROS2 Humble             | Ubuntu 22.04                     | Autonomy stack (SLAM-free, color-based navigation).                     | Nodes: `vision_node`, `control_node`, `main_node`. |
+|                   | OpenCV                  | 4.5+ (Python)                    | Real-time color detection (`cv2.inRange`).                              | Thresholds calibrated for red/green. |
+|                   | PySerial                | 3.5+                             | Serial communication with Arduino.                                      | Commands: `b'A'`, `b'S'`, `b'B'`.  |
