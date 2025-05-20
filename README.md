@@ -242,6 +242,18 @@ Arduino uses a **L298N H-Bridge** to control two DC motors. Each command from th
 > ✅ This architecture enables real-time reactive control, where **vision guides motion**.
 
 ---
+# 🧹 Uninstall OpenCV and Camera-Related Packages in Python 3
+
+```bash
+pip3 uninstall opencv-python opencv-contrib-python
+sudo apt remove libopencv* python3-opencv
+sudo apt autoremove
+```
+
+> These commands remove OpenCV installed via `pip3` and `apt`, which can be necessary if you're experiencing issues with the camera losing connection after running Python program. Once there are uninstalled you have to install them again and be carefull where you connect the usb Camara, must have to be on the second usb flash raspberry, if you connected them on the first one you have to change only the code where the usb c lo puedes verificar con:
+ ```bash
+ ls /dev/video*
+```
 
 
 
